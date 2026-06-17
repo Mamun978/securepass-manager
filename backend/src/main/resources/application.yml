@@ -1,0 +1,32 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:backend/.env[.properties]
+  application:
+    name: securepass-manager
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/securepass}
+    username: ${DB_USERNAME:securepass}
+    password: ${DB_PASSWORD:securepass}
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  aes:
+    key: ${AES_KEY}
+  frontend-url: ${FRONTEND_URL:http://localhost:4200}
+  reset-token-expiration-minutes: ${RESET_TOKEN_EXPIRATION_MINUTES:30}

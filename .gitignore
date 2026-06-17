@@ -1,0 +1,11 @@
+.env
+.gradle
+build
+node_modules
+dist
+.angular
+*.log
+.DS_Store
+backend/build
+frontend/dist
+frontend/node_modules

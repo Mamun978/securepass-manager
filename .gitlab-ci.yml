@@ -1,0 +1,57 @@
+stages:
+  - build
+  - test
+  - docker
+  - deploy
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+
+backend_build:
+  stage: build
+  image: gradle:8.10.2-jdk21
+  script:
+    - cd backend
+    - gradle clean bootJar --no-daemon
+  artifacts:
+    paths:
+      - backend/build/libs/*.jar
+    expire_in: 1 week
+
+backend_tests:
+  stage: test
+  image: gradle:8.10.2-jdk21
+  script:
+    - cd backend
+    - gradle test --no-daemon
+
+frontend_build:
+  stage: build
+  image: node:22
+  script:
+    - cd frontend
+    - npm install
+    - API_URL="${API_URL:-http://localhost:8080/api}" npm run build
+  artifacts:
+    paths:
+      - frontend/dist
+    expire_in: 1 week
+
+docker_build_backend:
+  stage: docker
+  image: docker:27
+  services:
+    - docker:27-dind
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+  script:
+    - docker build -t securepass-manager-backend:$CI_COMMIT_SHORT_SHA backend
+
+deployment_notes:
+  stage: deploy
+  image: alpine:3.20
+  script:
+    - echo "Deploy backend on Render from backend/Dockerfile with Neon DB environment variables."
+    - echo "Deploy frontend on Netlify or Vercel from frontend/ with API_URL set to the Render backend /api URL."
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'

@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: securepass-postgres
+    environment:
+      POSTGRES_DB: securepass
+      POSTGRES_USER: securepass
+      POSTGRES_PASSWORD: securepass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securepass -d securepass"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: securepass-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      DB_URL: jdbc:postgresql://postgres:5432/securepass
+      DB_USERNAME: securepass
+      DB_PASSWORD: securepass
+      JWT_SECRET: ${JWT_SECRET}
+      AES_KEY: ${AES_KEY}
+      FRONTEND_URL: http://localhost:4200,http://127.0.0.1:4200
+      JPA_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_URL: http://localhost:8080/api
+    container_name: securepass-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  postgres-data:
