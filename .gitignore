@@ -1,4 +1,6 @@
 .env
+backend/.env
+frontend/.env
 .gradle
 build
 node_modules
